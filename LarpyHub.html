@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mod JAR Scanner</title>
+<style>
+:root{--bg:#f3f5fa;--bg2:#e8ecf5;--card:#fff;--tx:#12151f;--mu:#667189;--bd:#dde2ee;--ac:#5b5bf0;--ok:#12a150;--warn:#d98e04;--org:#e8590c;--bad:#d92d20;--code:#0e1220;--ct:#cfd6ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0d16;--bg2:#10142200;--card:#121726;--tx:#e9ecf6;--mu:#8a94ad;--bd:#222a3f;--ac:#8b8bff;--ok:#38e08a;--warn:#ffc233;--org:#ff8a3d;--bad:#ff5c4d;--code:#080b14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a0d16;--bg2:#10142200;--card:#121726;--tx:#e9ecf6;--mu:#8a94ad;--bd:#222a3f;--ac:#8b8bff;--ok:#38e08a;--warn:#ffc233;--org:#ff8a3d;--bad:#ff5c4d;--code:#080b14;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--tx);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(900px 420px at 50% -120px,color-mix(in srgb,var(--ac) 22%,transparent),transparent),var(--bg);min-height:100vh}
+main{max-width:1000px;margin:0 auto;padding:28px 16px 70px}
+.hero{text-align:center;margin:10px 0 24px}
+.logo{font-size:44px;filter:drop-shadow(0 6px 20px color-mix(in srgb,var(--ac) 60%,transparent))}
+h1{font-size:clamp(26px,5vw,38px);margin:6px 0 6px;letter-spacing:-.02em;background:linear-gradient(90deg,var(--tx),var(--ac));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mu);max-width:560px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+#drop{position:relative;text-align:center;padding:46px 16px;cursor:pointer;border:2px dashed color-mix(in srgb,var(--ac) 45%,var(--bd));transition:.2s;background:color-mix(in srgb,var(--ac) 5%,var(--card))}
+#drop:hover,#drop.over{transform:translateY(-2px);border-color:var(--ac);background:color-mix(in srgb,var(--ac) 12%,var(--card))}
+#drop .big{font-size:40px}#drop b{display:block;font-size:18px;margin:6px 0 2px}.mu{color:var(--mu)}.sm{font-size:13px}
+#prog{display:none;margin-top:14px}#prog .t{height:8px;border-radius:99px;background:var(--bd);overflow:hidden}#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ok));transition:width .15s}
+#out{display:none;animation:up .5s ease}@keyframes up{from{opacity:0;transform:translateY(14px)}}
+.top{display:grid;grid-template-columns:200px 1fr;gap:22px;align-items:center}
+@media(max-width:640px){.top{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.ring{position:relative;width:190px;height:190px}.ring svg{transform:rotate(-90deg)}
+.ring .n{position:absolute;inset:0;display:grid;place-content:center;text-align:center}.ring .n b{font-size:46px;line-height:1}.ring .n span{font-size:12px;color:var(--mu);letter-spacing:.1em}
+#verdict{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:12px;width:100%}
+.st{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:8px 10px;text-align:left}.st b{display:block;font-size:16px}.st span{font-size:11.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.pill{padding:3px 11px;border-radius:99px;font-size:12.5px;font-weight:700;color:#fff}
+.critical{background:var(--bad)}.high{background:var(--org)}.medium{background:var(--warn);color:#1b1b1b}.low{background:var(--mu)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn{font:inherit;font-weight:600;font-size:13.5px;padding:8px 14px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;text-decoration:none}.btn:hover{border-color:var(--ac)}
+h2{font-size:18px;margin:0 0 12px}
+details.f{border:1px solid var(--bd);border-left:5px solid var(--mu);border-radius:12px;margin-bottom:10px;background:var(--bg)}
+details.f.critical{border-left-color:var(--bad)}details.f.high{border-left-color:var(--org)}details.f.medium{border-left-color:var(--warn)}
+details.f summary{cursor:pointer;padding:12px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;list-style:none}
+details.f summary::-webkit-details-marker{display:none}
+details.f summary b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px}
+details.f .body{padding:0 14px 14px}
+.ev{font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--code);color:var(--ct);padding:8px 10px;border-radius:8px;margin:6px 0;word-break:break-all}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.chips button{font:12px ui-monospace,Menlo,monospace;padding:3px 8px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.chips button:hover{border-color:var(--ac)}
+.clean{text-align:center;padding:20px;color:var(--ok);font-weight:600}
+.ide{display:grid;grid-template-columns:270px 1fr;border:1px solid var(--bd);border-radius:12px;overflow:hidden;height:520px}
+@media(max-width:700px){.ide{grid-template-columns:1fr;height:auto}#list{max-height:200px}}
+#side{display:flex;flex-direction:column;border-right:1px solid var(--bd);min-height:0;background:var(--bg)}
+#side input[type=search]{margin:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:13px}
+#side label{font-size:12px;color:var(--mu);margin:0 10px 6px}
+#list{overflow:auto;flex:1;min-height:0}
+.ci{padding:5px 10px;font:12px ui-monospace,Menlo,monospace;cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap}
+.ci:hover{background:color-mix(in srgb,var(--ac) 12%,transparent)}.ci.on{background:color-mix(in srgb,var(--ac) 24%,transparent)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;background:transparent}
+.ci span{overflow:hidden;text-overflow:ellipsis}
+#code{margin:0;overflow:auto;background:var(--code);color:var(--ct);padding:14px;font:12.5px/1.6 ui-monospace,Menlo,Consolas,monospace;min-width:0}
+#code .c{color:#7d88a8}#code .k{color:#c792ea}#code .f{color:#82aaff}#code .w{display:inline-block;width:100%;background:rgba(255,92,77,.22);color:#ffb4ab;border-radius:3px}
+.foot{font-size:12.5px;color:var(--mu);text-align:center;margin-top:20px}
+</style></head><body><main>
+<div class="hero"><div class="logo">🛡️</div><h1>Mod JAR Scanner</h1>
+<p class="sub">Drop any Minecraft mod or plugin. It gets unpacked, every class is analyzed, and you get a malware risk score with tagged findings. Runs 100% in your browser.</p></div>
+<div class="card" id="drop"><div class="big">📦</div><b>Drop a .jar here or click to browse</b><span class="mu sm">Fabric, Forge, NeoForge, Quilt, Paper and Bukkit all work</span>
+<div id="prog"><div class="t"><i id="pbar"></i></div><div class="sm mu" id="ptxt" style="margin-top:6px"></div></div>
+<input id="file" type="file" accept=".jar,.zip" hidden></div>
+<div id="err" class="sm" style="color:var(--bad);text-align:center;margin-bottom:10px"></div>
+<div id="out">
+<div class="card"><div class="top">
+ <div class="ring"><svg width="190" height="190" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--bd)" stroke-width="9"/><circle id="arc" cx="60" cy="60" r="54" fill="none" stroke="var(--ok)" stroke-width="9" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3" style="transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1),stroke .4s"/></svg>
+ <div class="n"><b id="num">0%</b><span>MALWARE RISK</span></div></div>
+ <div><div id="verdict"></div><div class="mu" id="meta"></div><div class="pills" id="pills"></div><div class="stats" id="stats"></div>
+ <div class="btns"><button class="btn" id="copy">📋 Copy report</button><a class="btn" id="vt" target="_blank" rel="noopener">🔎 Check on VirusTotal</a></div></div>
+</div></div>
+<div class="card"><h2>🚩 Findings &amp; malicious tags</h2><div id="finds"></div></div>
+<div class="card"><h2>🧩 Decompiled view</h2><p class="mu sm" style="margin-top:-6px">Structural outline rebuilt from each class: fields, method signatures, referenced calls and strings. Flagged lines are highlighted in red.</p>
+<div class="ide"><div id="side"><input id="q" type="search" placeholder="Search classes…"><label><input type="checkbox" id="fo"> Flagged only</label><div id="list"></div></div><pre id="code">Select a class</pre></div></div>
+</div>
+<p class="foot">Heuristic static analysis. A low score is not a guarantee and a high score can be a false positive. Only download mods from trusted sources.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ORD={critical:0,high:1,medium:2,low:3};
+const R=(t,s,w,d,re)=>({t,s,w,d,re});
+const RULES=[
+R('DISCORD_WEBHOOK','critical',45,'Sends data to a Discord webhook, a common way to exfiltrate tokens and files.',/discord(app)?\.com\/api\/webhooks/i),
+R('TELEGRAM_EXFIL','critical',35,'Talks to the Telegram bot API.',/api\.telegram\.org\/bot/i),
+R('KNOWN_IOC','critical',60,'Matches an indicator from known mod malware such as fractureiser.',/85\.217\.144\.130|files\.catbox\.moe/i),
+R('BROWSER_WALLET_STEALER','critical',35,'References browser passwords, cookies or crypto wallet files.',/Login Data|Local State|logins\.json|key4\.db|wallet\.dat|leveldb|Exodus|MetaMask/),
+R('KEYLOGGER','high',25,'Hooks keyboard input system-wide.',/jnativehook|GlobalScreen|NativeKeyListener|SetWindowsHookEx/i),
+R('SCREEN_CAPTURE','high',15,'Takes screenshots of the whole desktop.',/java\/awt\/Robot\.createScreenCapture/),
+R('SESSION_TOKEN_ACCESS','high',15,'Reads the Minecraft session or launcher account data.',/getAccessToken|getSession|func_111286_b|launcher_accounts|launcher_profiles/),
+R('PROCESS_EXEC','high',20,'Starts external processes.',/java\/lang\/Runtime\.exec|java\/lang\/ProcessBuilder\.(start|<init>)/),
+R('SHELL_COMMAND','high',20,'Mentions PowerShell, cmd, shells or download tools.',/powershell|cmd\.exe|\/bin\/(ba)?sh\b|-EncodedCommand|certutil|bitsadmin/i),
+R('PERSISTENCE','high',25,'Touches startup or autorun locations.',/CurrentVersion\\Run|\\Startup|crontab|LaunchAgents|\.config\/autostart/i),
+R('DYNAMIC_CLASS_LOADING','high',15,'Loads or defines classes at runtime, which can hide a second-stage payload.',/URLClassLoader|ClassLoader\.defineClass|Lookup\.defineClass/),
+R('NATIVE_LIBRARY_LOAD','medium',10,'Loads native code (.dll/.so).',/java\/lang\/(System|Runtime)\.(load|loadLibrary) /),
+R('REMOTE_PAYLOAD_URL','medium',15,'Links to paste or file hosts, raw IPs or URL shorteners.',/https?:\/\/(raw\.githubusercontent\.com|pastebin\.com\/raw|paste\.ee|transfer\.sh|cdn\.discordapp\.com\/attachments|bit\.ly|[^\/\s]*ngrok|\d{1,3}(\.\d{1,3}){3})/i),
+R('CLIPBOARD_ACCESS','medium',8,'Reads or writes the system clipboard (crypto address swapping).',/java\/awt\/datatransfer\/Clipboard\.(getContents|setContents)/),
+R('NETWORK_ACCESS','low',5,'Opens network connections (normal for updaters, risky with other flags).',/java\/net\/(URL\.(openConnection|openStream)|Socket\.<init>)|HttpURLConnection|java\/net\/http\/HttpClient/),
+R('SYSTEM_RECON','low',3,'Reads environment variables or user info.',/java\/lang\/System\.getenv|user\.name|COMPUTERNAME/),
+R('BASE64_DECODE','low',3,'Decodes Base64, often used to hide strings.',/java\/util\/Base64\$Decoder\.decode/),
+R('REFLECTION_INVOKE','low',3,'Calls methods through reflection.',/java\/lang\/reflect\/Method\.invoke/)];
+async function readZip(buf){
+ const dv=new DataView(buf);let e=-1;
+ for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65600);i--)if(dv.getUint32(i,true)===0x06054b50){e=i;break}
+ if(e<0)throw new Error('Not a valid zip/jar file');
+ const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const l=[],td=new TextDecoder();
+ for(let i=0;i<n&&dv.getUint32(p,true)===0x02014b50;i++){
+  const nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true);
+  l.push({name:td.decode(new Uint8Array(buf,p+46,nl)),m:dv.getUint16(p+10,true),cs:dv.getUint32(p+20,true),us:dv.getUint32(p+24,true),lh:dv.getUint32(p+42,true)});p+=46+nl+el+cl}
+ return l}
+async function extract(buf,en){
+ const dv=new DataView(buf),s=en.lh+30+dv.getUint16(en.lh+26,true)+dv.getUint16(en.lh+28,true),d=new Uint8Array(buf,s,en.cs);
+ if(en.m===0)return d;
+ return new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer())}
+function parseClass(u){
+ const dv=new DataView(u.buffer,u.byteOffset,u.byteLength);if(dv.getUint32(0)!==0xCAFEBABE)return null;
+ const td=new TextDecoder();let p=8;const cnt=dv.getUint16(p);p+=2;const cp=[null];
+ for(let i=1;i<cnt;i++){const t=u[p++];
+  if(t===1){const l=dv.getUint16(p);cp[i]={t,s:td.decode(u.subarray(p+2,p+2+l))};p+=2+l}
+  else if(t===3||t===4)p+=4;else if(t===5||t===6){p+=8;i++}
+  else if(t===7||t===8||t===16||t===19||t===20){cp[i]={t,a:dv.getUint16(p)};p+=2}
+  else if([9,10,11,12,17,18].includes(t)){cp[i]={t,a:dv.getUint16(p),b:dv.getUint16(p+2)};p+=4}
+  else if(t===15)p+=3;else throw 0}
+ const U=i=>cp[i]&&cp[i].s||'',C=i=>cp[i]?U(cp[i].a):'';
+ const acc=dv.getUint16(p),name=C(dv.getUint16(p+2)),sup=C(dv.getUint16(p+4));p+=6;p+=2+2*dv.getUint16(p);
+ const mem=()=>{const k=dv.getUint16(p);p+=2;const r=[];for(let i=0;i<k;i++){const a=dv.getUint16(p),nm=U(dv.getUint16(p+2)),ds=U(dv.getUint16(p+4));let ac=dv.getUint16(p+6);p+=8;for(;ac>0;ac--){p+=2;p+=4+dv.getUint32(p)}r.push({a,nm,ds})}return r};
+ const fields=mem(),methods=mem(),strings=[],refs=[];
+ for(const x of cp){if(!x)continue;if(x.t===8)strings.push(U(x.a));else if(x.t===9||x.t===10||x.t===11){const nt=cp[x.b];refs.push(C(x.a)+'.'+U(nt.a)+' '+U(nt.b))}}
+ return{name,sup,acc,fields,methods,strings,refs,tags:new Set(),sev:9}}
+const mods=a=>[a&1&&'public',a&2&&'private',a&4&&'protected',a&8&&'static',a&0x10&&'final',a&0x400&&'abstract'].filter(Boolean).join(' ');
+function outline(c){
+ let s=`${mods(c.acc&~0x20)} class ${c.name.replace(/\//g,'.')} extends ${c.sup.replace(/\//g,'.')} {\n`;
+ c.fields.forEach(f=>s+=`  ${mods(f.a)} ${f.nm}; // ${f.ds}\n`);s+='\n';
+ c.methods.forEach(m=>s+=`  ${mods(m.a)} ${m.nm}${m.ds}\n`);
+ const calls=[...new Set(c.refs)].filter(r=>!/^java\/lang\/(Object|String|StringBuilder)\./.test(r));
+ if(calls.length)s+='\n  // referenced members\n'+calls.slice(0,200).map(r=>'  // '+r).join('\n')+'\n';
+ const st=[...new Set(c.strings)].filter(x=>x.length>1);
+ if(st.length)s+='\n  // string constants\n'+st.slice(0,200).map(x=>'  // '+JSON.stringify(x.slice(0,180))).join('\n')+'\n';
+ return s+'}'}
+function hl(s){return s.split('\n').map(l=>{const e=esc(l);
+ if(/^\s*\/\//.test(l))return RULES.some(r=>r.re.test(l))?`<span class="w">${e}</span>`:`<span class="c">${e}</span>`;
+ return e.replace(/\b(public|private|protected|static|final|abstract|class|extends)\b/g,'<span class="k">$1</span>').replace(/(&lt;init&gt;|&lt;clinit&gt;)/g,'<span class="f">$1</span>')}).join('\n')}
+const tick=()=>new Promise(r=>setTimeout(r));
+let ST=null;
+async function walk(buf,prefix,depth,ctx){
+ const ents=await readZip(buf);
+ for(const en of ents){
+  if(en.name.endsWith('/'))continue;const path=prefix+en.name;ctx.files++;
+  if(++ctx.n%20===0){$('pbar').style.width=Math.min(95,ctx.n/ctx.total*100)+'%';$('ptxt').textContent='Analyzing '+path;await tick()}
+  const nested=/\.jar$/i.test(en.name);
+  if(/\.(exe|dll|bat|ps1|vbs|scr|sh)$/i.test(en.name)||(nested&&!/^META-INF\/(jars|versions)\//.test(en.name)))ctx.add(R('EMBEDDED_EXECUTABLE','medium',15,'Contains an executable, script or hidden nested jar.'),path,path);
+  try{
+  if(nested&&depth<2&&en.us<60e6){await walk((await extract(buf,en)).slice().buffer,path+'!/',depth+1,ctx);continue}
+  if(en.name.endsWith('.class')&&en.us<20e6){const c=parseClass(await extract(buf,en));if(!c)continue;c.file=path;ctx.classes.push(c);
+   for(const it of [...c.strings,...c.refs])for(const r of RULES)if(r.re.test(it))ctx.add(r,path,it.slice(0,140),c);continue}
+  if(/\.(json|toml|yml|yaml|txt|properties|cfg|info|js|bat|sh|ps1)$/i.test(en.name)&&en.us<5e5){
+   const tx=new TextDecoder().decode(await extract(buf,en));
+   for(const r of RULES)if(r.s!=='low'){const m=tx.match(r.re);if(m)ctx.add(r,path,m[0].slice(0,140))}
+   if(depth===0&&!ctx.meta){const nm=en.name,g=(re)=>(tx.match(re)||[])[1];
+    if(/^(fabric|quilt)\.mod\.json$/.test(nm)){try{const j=JSON.parse(tx);ctx.meta={loader:nm[0]=='f'?'Fabric':'Quilt',name:j.name||j.id,ver:j.version}}catch(_){}}
+    else if(/mods\.toml$/.test(nm))ctx.meta={loader:/neoforge/.test(nm)?'NeoForge':'Forge',name:g(/displayName\s*=\s*"([^"]+)"/),ver:g(/\nversion\s*=\s*"([^"]+)"/)};
+    else if(/^(paper-)?plugin\.yml$/.test(nm))ctx.meta={loader:'Bukkit/Paper',name:g(/^name:\s*(.+)$/m),ver:g(/^version:\s*(.+)$/m)}}}
+  }catch(_){}
+ }}
+async function scan(file){
+ $('err').textContent='';$('out').style.display='none';$('prog').style.display='block';$('pbar').style.width='2%';$('ptxt').textContent='Reading file…';
+ try{
+  const buf=await file.arrayBuffer(),hits={};
+  let sha='';try{sha=[...new Uint8Array(await crypto.subtle.digest('SHA-256',buf))].map(b=>b.toString(16).padStart(2,'0')).join('')}catch(_){}
+  const total=(await readZip(buf)).length;
+  const ctx={classes:[],files:0,n:0,total:total*1.2,meta:null,add(r,where,ev,cls){const h=hits[r.t]||(hits[r.t]={r,files:new Set(),ev:[]});h.files.add(where);if(h.ev.length<3&&!h.ev.includes(ev))h.ev.push(ev);if(cls){cls.tags.add(r.t);cls.sev=Math.min(cls.sev,ORD[r.s])}}};
+  await walk(buf,'',0,ctx);
+  const cl=ctx.classes,short=cl.filter(c=>c.name.split('/').pop().length<=2).length;
+  if(cl.length>10&&short/cl.length>.4)ctx.add(R('HEAVY_OBFUSCATION','low',5,'Most class names are 1 to 2 characters long.'),'(many classes)',Math.round(short/cl.length*100)+'% short names');
+  const has=(...t)=>t.some(x=>hits[x]);
+  if(has('NETWORK_ACCESS','REMOTE_PAYLOAD_URL')&&has('PROCESS_EXEC','DYNAMIC_CLASS_LOADING','SHELL_COMMAND'))ctx.add(R('DOWNLOADER_BEHAVIOR','high',20,'Combo: downloads data AND runs code or commands. Classic malware dropper pattern.'),'(combination)','network + execution');
+  if(has('SESSION_TOKEN_ACCESS')&&has('NETWORK_ACCESS','DISCORD_WEBHOOK','TELEGRAM_EXFIL','REMOTE_PAYLOAD_URL'))ctx.add(R('TOKEN_EXFIL_COMBO','critical',25,'Combo: reads your Minecraft session AND can send data out.'),'(combination)','session access + network');
+  const H=Object.values(hits).sort((a,b)=>ORD[a.r.s]-ORD[b.r.s]||b.r.w-a.r.w);
+  let score=Math.min(100,H.reduce((a,h)=>a+h.r.w,0));if(H.some(h=>h.r.s==='critical'))score=Math.max(score,60);
+  ST={cl,H,score,file,sha,ctx};render();
+ }catch(e){$('err').textContent='Could not scan: '+(e.message||'invalid or corrupted file')}
+ $('prog').style.display='none'}
+function render(){
+ const{cl,H,score,file,sha,ctx}=ST;
+ const v=score<20?['✅ Looks clean','var(--ok)']:score<50?['⚠️ Low risk, review findings','var(--warn)']:score<85?['🟠 Suspicious','var(--org)']:['☠️ Likely malware','var(--bad)'];
+ $('verdict').textContent=v[0];$('verdict').style.color=v[1];$('num').style.color=v[1];$('arc').style.stroke=v[1];
+ $('out').style.display='block';
+ requestAnimationFrame(()=>$('arc').style.strokeDashoffset=339.3*(1-score/100));
+ let k=0;const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/1200);$('num').textContent=Math.round(score*(1-Math.pow(1-p,3)))+'%';if(p<1)requestAnimationFrame(f)})(t0);
+ const m=ctx.meta;$('meta').textContent=m?`${m.loader}${m.name?' · '+m.name:''}${m.ver?' '+m.ver:''}`:file.name;
+ const cnt={};H.forEach(h=>cnt[h.r.s]=(cnt[h.r.s]||0)+1);
+ $('pills').innerHTML=['critical','high','medium','low'].filter(s=>cnt[s]).map(s=>`<span class="pill ${s}">${cnt[s]} ${s}</span>`).join('')||'<span class="pill" style="background:var(--ok);color:#06210f">0 issues</span>';
+ const sz=file.size>1e6?(file.size/1e6).toFixed(1)+' MB':Math.round(file.size/1e3)+' KB';
+ $('stats').innerHTML=[['Size',sz],['Files',ctx.files],['Classes',cl.length],['SHA-256',sha?sha.slice(0,10)+'…':'n/a']].map(([a,b])=>`<div class="st"><b>${esc(b)}</b><span>${a}</span></div>`).join('');
+ $('vt').style.display=sha?'':'none';$('vt').href='https://www.virustotal.com/gui/file/'+sha;
+ $('finds').innerHTML=H.length?H.map(h=>`<details class="f ${h.r.s}" ${ORD[h.r.s]<2?'open':''}><summary><span class="pill ${h.r.s}">${h.r.s}</span><b>${h.r.t}</b><span class="mu sm">+${h.r.w} pts · ${h.files.size} file(s)</span></summary><div class="body"><div>${esc(h.r.d)}</div>${h.ev.map(e=>`<div class="ev">${esc(e)}</div>`).join('')}<div class="chips">${[...h.files].slice(0,8).map(f=>`<button data-f="${esc(f)}">${esc(f.split('/').pop())}</button>`).join('')}</div></div></details>`).join(''):'<div class="clean">✅ No suspicious indicators found in this file.</div>';
+ $('finds').onclick=e=>{const b=e.target.closest('button[data-f]');if(b){const i=cl.findIndex(c=>c.file===b.dataset.f);if(i>-1){show(i);$('code').scrollIntoView({behavior:'smooth',block:'center'})}}};
+ cl.sort((a,b)=>a.sev-b.sev||a.name.localeCompare(b.name));list();
+ $('code').innerHTML='Select a class on the left';if(cl.length)show(0);
+ $('out').scrollIntoView({behavior:'smooth'})}
+const DC=['var(--bad)','var(--org)','var(--warn)','var(--mu)','transparent'];
+function list(){const q=$('q').value.toLowerCase(),fo=$('fo').checked;
+ $('list').innerHTML=ST.cl.map((c,i)=>({c,i})).filter(({c})=>(!fo||c.sev<9)&&c.name.toLowerCase().includes(q)).slice(0,600).map(({c,i})=>`<div class="ci" data-i="${i}" title="${esc(c.file)}"><i class="dot" style="background:${DC[Math.min(c.sev,4)]}"></i><span>${esc(c.name.replace(/\//g,'.'))}</span></div>`).join('')||'<div class="ci mu">No classes</div>'}
+function show(i){const c=ST.cl[i];$('code').innerHTML=(c.tags.size?`<span class="w">// ⚠ flagged: ${esc([...c.tags].join(', '))}</span>\n`:'')+hl(outline(c));
+ document.querySelectorAll('.ci.on').forEach(x=>x.classList.remove('on'));const el=document.querySelector(`.ci[data-i="${i}"]`);if(el){el.classList.add('on');el.scrollIntoView({block:'nearest'})}}
+$('list').onclick=e=>{const d=e.target.closest('.ci[data-i]');if(d)show(+d.dataset.i)};
+$('q').oninput=list;$('fo').onchange=list;
+$('copy').onclick=async()=>{const{H,score,file,sha}=ST;
+ const t=`Mod JAR Scanner report\nFile: ${file.name}\nSHA-256: ${sha}\nRisk: ${score}/100\n\n`+H.map(h=>`[${h.r.s.toUpperCase()}] ${h.r.t} (+${h.r.w}): ${h.r.d}`).join('\n');
+ try{await navigator.clipboard.writeText(t)}catch(_){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}
+ $('copy').textContent='✅ Copied';setTimeout(()=>$('copy').textContent='📋 Copy report',1500)};
+const d=$('drop');d.onclick=e=>{if(!e.target.closest('input'))$('file').click()};
+$('file').onchange=e=>e.target.files[0]&&scan(e.target.files[0]);
+d.ondragover=e=>{e.preventDefault();d.classList.add('over')};d.ondragleave=()=>d.classList.remove('over');
+d.ondrop=e=>{e.preventDefault();d.classList.remove('over');e.dataTransfer.files[0]&&scan(e.dataTransfer.files[0])};
+</script></main></body></html>
